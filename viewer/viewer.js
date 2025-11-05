@@ -6,6 +6,7 @@ let pdfDoc = null;
 let pageNum = 1;
 let pageIsRendering = false;
 let pageNumPending = null;
+let annotations = [];
 
 const canvas = document.getElementById('pdf-canvas');
 const ctx = canvas.getContext('2d');
@@ -13,6 +14,7 @@ const fileInput = document.getElementById('file-input');
 const controls = document.getElementById('controls');
 const pageNumSpan = document.getElementById('page-num');
 const pageCountSpan = document.getElementById('page-count');
+const textLayerDiv = document.getElementById('text-layer');
 
 function renderPage(num) {
   pageIsRendering = true;
@@ -36,6 +38,23 @@ function renderPage(num) {
     });
 
     pageNumSpan.textContent = num;
+
+    // Render text layer
+    page.getTextContent().then(textContent => {
+      while (textLayerDiv.firstChild) {
+        textLayerDiv.removeChild(textLayerDiv.firstChild);
+      }
+
+      textLayerDiv.style.width = canvas.width + 'px';
+      textLayerDiv.style.height = canvas.height + 'px';
+
+      pdfjsLib.renderTextLayer({
+        textContent,
+        container: textLayerDiv,
+        viewport,
+        textDivs: []
+      });
+    });
   });
 }
 
@@ -76,5 +95,23 @@ fileInput.addEventListener('change', (e) => {
       });
     };
     reader.readAsArrayBuffer(file);
+  }
+});
+
+// Subrayar texto seleccionado
+document.addEventListener('mouseup', () => {
+  const selection = window.getSelection();
+  if (selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString().trim();
+    if (selectedText.length > 0 && textLayerDiv.contains(range.startContainer)) {
+      const span = document.createElement('span');
+      span.className = 'highlighted';
+      span.textContent = selectedText;
+      range.deleteContents();
+      range.insertNode(span);
+      annotations.push({ page: pageNum, text: selectedText });
+      selection.removeAllRanges();
+    }
   }
 });

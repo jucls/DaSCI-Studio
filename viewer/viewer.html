@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Visor PDF dinámico</title>
+  <title>Visor PDF con subrayado</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -15,6 +15,13 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 20px;
+      position: relative;
+    }
+    #text-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
     }
     canvas {
       display: block;
@@ -43,6 +50,9 @@
       text-align: center;
       margin-bottom: 20px;
     }
+    .highlighted {
+      background-color: #fff8b3;
+    }
   </style>
 </head>
 <body>
@@ -56,6 +66,7 @@
       <button id="next">Siguiente</button>
     </div>
     <canvas id="pdf-canvas"></canvas>
+    <div id="text-layer"></div>
   </div>
 
   <script type="module" src="./viewer.js"></script>
