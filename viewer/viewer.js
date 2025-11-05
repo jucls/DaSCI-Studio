@@ -1,9 +1,6 @@
-// viewer.js
 import * as pdfjsLib from './pdf.mjs';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
-
-const url = '../assets/sample.pdf';
 
 let pdfDoc = null;
 let pageNum = 1;
@@ -12,7 +9,8 @@ let pageNumPending = null;
 
 const canvas = document.getElementById('pdf-canvas');
 const ctx = canvas.getContext('2d');
-
+const fileInput = document.getElementById('file-input');
+const controls = document.getElementById('controls');
 const pageNumSpan = document.getElementById('page-num');
 const pageCountSpan = document.getElementById('page-count');
 
@@ -61,10 +59,22 @@ document.getElementById('next').addEventListener('click', () => {
   queueRenderPage(pageNum);
 });
 
-pdfjsLib.getDocument(url).promise.then(pdfDoc_ => {
-  pdfDoc = pdfDoc_;
-  pageCountSpan.textContent = pdfDoc.numPages;
-  renderPage(pageNum);
-}).catch(err => {
-  console.error('Error al cargar el PDF:', err.message);
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file && file.type === 'application/pdf') {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(this.result);
+      pdfjsLib.getDocument(typedarray).promise.then(pdfDoc_ => {
+        pdfDoc = pdfDoc_;
+        pageNum = 1;
+        pageCountSpan.textContent = pdfDoc.numPages;
+        controls.style.display = 'block';
+        renderPage(pageNum);
+      }).catch(err => {
+        console.error('Error al cargar el PDF:', err.message);
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
 });
